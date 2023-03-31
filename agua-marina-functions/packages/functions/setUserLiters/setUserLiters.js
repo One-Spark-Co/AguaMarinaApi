@@ -19,7 +19,7 @@ async function main(args) {
 
   try {
   
-    const RESPONSE = {data: 'TESTING PHASE'};
+    const RESPONSE = {data: 'TESTING PHASE 7'};
     /*
     // * GET ORDER
     const GET_ORDER_CONFIG = {
