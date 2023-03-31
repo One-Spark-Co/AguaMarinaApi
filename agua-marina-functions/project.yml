@@ -1,0 +1,23 @@
+parameters: {}
+environment: {}
+packages:
+    - name: functions
+      shared: false
+      environment: {}
+      parameters: {}
+      annotations: {}
+      functions:
+        - name: setUserLiters
+          binary: false
+          main: ""
+          runtime: nodejs:default
+          web: true
+          webSecure: false
+          parameters: {}
+          environment: {
+            API_URL: "${API_URL}",
+            AUTH_TOKEN:  "${AUTH_TOKEN}",
+            USER_AGENT: "${USER_AGENT}"
+          }
+          annotations: {}
+          limits: {}
