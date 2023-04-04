@@ -6,8 +6,8 @@ async function main(args) {
   const API_URL = process.env.API_URL;
   const AUTH_TOKEN = process.env.AUTH_TOKEN;
   const USER_AGENT = process.env.USER_AGENT;
-  const ORDER_ID = args.orderId;
-  const LITERS_PER_PRODUCT = process.env.LITERS_PER_PRODUCT;
+  const ORDER_ID = args.id;
+  const LITERS_PER_PRODUCT = parseInt(process.env.LITERS_PER_PRODUCT);
 
   try {
     // * GET ORDER
