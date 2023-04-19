@@ -17,7 +17,23 @@ packages:
           environment: {
             API_URL: "${API_URL}",
             AUTH_TOKEN:  "${AUTH_TOKEN}",
-            USER_AGENT: "${USER_AGENT}"
+            USER_AGENT: "${USER_AGENT}",
+            LITERS_PER_PRODUCT: "${LITERS_PER_PRODUCT}"
+          }
+          annotations: {}
+          limits: {}
+        - name: getUserLiters
+          binary: false
+          main: ""
+          runtime: nodejs:default
+          web: true
+          webSecure: false
+          parameters: {}
+          environment: {
+            API_URL: "${API_URL}",
+            AUTH_TOKEN:  "${AUTH_TOKEN}",
+            USER_AGENT: "${USER_AGENT}",
+            LITERS_PER_PRODUCT: "${LITERS_PER_PRODUCT}"
           }
           annotations: {}
           limits: {}

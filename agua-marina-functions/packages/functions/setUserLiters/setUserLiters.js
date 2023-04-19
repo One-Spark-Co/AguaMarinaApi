@@ -9,6 +9,8 @@ async function main(args) {
   const ORDER_ID = args.id;
   const LITERS_PER_PRODUCT = parseInt(process.env.LITERS_PER_PRODUCT);
 
+  console.log('[NAVA] LITERS_PER_PRODUCT :', LITERS_PER_PRODUCT);
+
   try {
     // * GET ORDER
     const GET_ORDER_CONFIG = {
@@ -41,7 +43,8 @@ async function main(args) {
     const CUSTOMER = CUSTOMER_RESPONSE?.data;
 
     // * GET PRODUCT BOUGHT
-    const CUSTOMER_ACTUAL_LITERS = CUSTOMER?.note ? CUSTOMER.note : 0;
+    // ! POSSIBLE LOSS OF DATA (LITERS)
+    const CUSTOMER_ACTUAL_LITERS = CUSTOMER?.note >= 0 ? CUSTOMER.note : 0;
     const CUSTOMER_UPDATED_LITERS = parseInt(CUSTOMER_ACTUAL_LITERS) + parseInt(ORDER_LITERS);
     
     // * UPDATE USER INFORMATION
@@ -76,6 +79,5 @@ async function main(args) {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })
     };
- 
   }
 }
