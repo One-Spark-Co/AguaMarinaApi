@@ -9,8 +9,6 @@ async function main(args) {
   const ORDER_ID = args.id;
   const LITERS_PER_PRODUCT = parseInt(process.env.LITERS_PER_PRODUCT);
 
-  console.log('[NAVA] LITERS_PER_PRODUCT :', LITERS_PER_PRODUCT);
-
   try {
     // * GET ORDER
     const GET_ORDER_CONFIG = {
