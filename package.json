@@ -1,0 +1,19 @@
+{
+  "name": "agua-marina-api",
+  "version": "1.0.0",
+  "description": "AWS Lambda functions para gestión de litros de Agua Marina",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "type": "module",
+  "scripts": {
+    "zip:get-liters": "zip -r get-user-liters.zip get-user-liters.js package.json node_modules",
+    "zip:set-liters": "zip -r set-user-liters.zip set-user-liters.js package.json node_modules",
+    "deploy:get-liters": "aws lambda update-function-code --function-name aguamarina-get-user-liters --zip-file fileb://get-user-liters.zip",
+    "deploy:set-liters": "aws lambda update-function-code --function-name aguamarina-set-user-liters --zip-file fileb://set-user-liters.zip"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1450.0",
+    "axios": "^1.6.0"
+  }
+}
