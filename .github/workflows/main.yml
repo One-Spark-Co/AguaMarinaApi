@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
 
     steps:
       - name: Checkout Code
@@ -41,7 +41,7 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
           function_name: aguamarina-get-user-liters
           zip_file: get-user-liters.zip
-          runtime: nodejs20.x
+          runtime: nodejs22.x
           environment_variables: |
             TIENDA_NUBE_EXTERNAL_API_URL=${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}
             TIENDA_NUBE_AUTH_TOKEN=${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
 
     steps:
       - name: Checkout Code
@@ -83,7 +83,7 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
           function_name: aguamarina-set-user-liters
           zip_file: set-user-liters.zip
-          runtime: nodejs20.x
+          runtime: nodejs22.x
           environment_variables: |
             TIENDA_NUBE_EXTERNAL_API_URL=${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}
             TIENDA_NUBE_AUTH_TOKEN=${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}

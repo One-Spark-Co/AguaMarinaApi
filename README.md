@@ -169,7 +169,7 @@ npm run zip:set-liters
 2. Crear dos nuevas funciones:
    - Nombre: `aguamarina-get-user-liters`
    - Nombre: `aguamarina-set-user-liters`
-   - Runtime: Node.js 20.x
+   - Runtime: Node.js 22.x
    - Arquitectura: x86_64
 3. Subir los archivos ZIP correspondientes
 4. Configurar las environment variables
