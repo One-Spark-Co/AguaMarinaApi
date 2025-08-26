@@ -35,7 +35,9 @@ Este sistema gestiona el control de litros de agua para clientes de Agua Marina,
 │   └── workflows/          # Configuración de CI/CD
 ├── get-user-liters.js     # Lambda para consultar saldo de cliente
 ├── set-user-liters.js     # Lambda para procesar órdenes y actualizar litros
-├── package.json           # Dependencias y scripts
+├── package.json           # Dependencias y scripts de despliegue
+├── .env.example           # Template de variables de entorno
+├── .env                   # Variables de entorno locales (no en git)
 └── README.md             # Documentación
 ```
 
@@ -119,14 +121,10 @@ LITERS_PER_PRODUCT=1
 
 ## Despliegue Automatizado (GitHub Actions)
 
-Este proyecto usa GitHub Actions para el despliegue automático a AWS Lambda. Cada push a la rama `main` desplegará ambas funciones.
+Este proyecto usa GitHub Actions para el despliegue automático a AWS Lambda. Cada push a la rama `main` desplegará automáticamente ambas funciones con sus variables de entorno configuradas.
 
 ### Trigger del Workflow
-El workflow se ejecuta cuando se modifican estos archivos:
-- `get-user-liters.js`
-- `set-user-liters.js`
-- `package.json`
-- `.github/workflows/main.yml`
+El workflow se ejecuta con **cualquier push** a la rama `main`, sin importar qué archivos cambien.
 
 ### IAM Policy Requerida
 
@@ -139,16 +137,43 @@ El usuario AWS necesita estos permisos mínimos:
             "Effect": "Allow",
             "Action": [
                 "lambda:UpdateFunctionCode",
-                "lambda:UpdateFunctionConfiguration"
+                "lambda:UpdateFunctionConfiguration",
+                "lambda:GetFunction",
+                "lambda:GetFunctionConfiguration"
             ],
             "Resource": [
                 "arn:aws:lambda:*:*:function:aguamarina-get-user-liters",
                 "arn:aws:lambda:*:*:function:aguamarina-set-user-liters"
             ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": "*"
         }
     ]
 }
 ```
+
+## Scripts Disponibles
+
+### Scripts de Package.json
+
+El proyecto incluye varios scripts útiles para desarrollo y despliegue:
+
+```bash
+# Empaquetar funciones Lambda
+npm run zip:get-liters      # Crea get-user-liters.zip
+npm run zip:set-liters      # Crea set-user-liters.zip
+
+# Desplegar funciones Lambda (solo código, sin variables de entorno)
+npm run deploy:get-liters   # Despliega aguamarina-get-user-liters
+npm run deploy:set-liters   # Despliega aguamarina-set-user-liters
+```
+
+**Nota**: Los scripts de despliegue solo actualizan el código. Para un despliegue completo con variables de entorno, usa el workflow de GitHub Actions.
 
 ## Despliegue Manual
 
@@ -172,7 +197,7 @@ npm run zip:set-liters
    - Runtime: Node.js 22.x
    - Arquitectura: x86_64
 3. Subir los archivos ZIP correspondientes
-4. Configurar las environment variables
+4. **Nota**: Las environment variables se configurarán automáticamente en el primer despliegue
 
 ### 3. Configurar API Gateway
 
@@ -300,6 +325,12 @@ curl -X POST \
 - **CORS configurado**: Headers CORS para integración con frontend
 - **Performance optimizada**: Configuración de timeouts y manejo eficiente
 
+### CI/CD y Despliegue
+- **Actions oficiales de AWS**: Uso de `aws-actions/aws-lambda-deploy` para despliegue confiable
+- **Environment variables automáticas**: Configuración automática de variables de entorno
+- **Despliegue continuo**: Cada push a `main` despliega automáticamente
+- **Configuración simplificada**: No requiere archivos `.env` en el ZIP
+
 ## Seguridad
 
 Se recomienda implementar:
@@ -337,7 +368,11 @@ Configurar alertas para:
 
 ### Actualizar Funciones
 ```bash
-# Actualizar código de función
+# Actualizar código de función usando scripts de package.json
+npm run deploy:get-liters
+npm run deploy:set-liters
+
+# O manualmente con AWS CLI
 aws lambda update-function-code \
   --function-name aguamarina-get-user-liters \
   --zip-file fileb://get-user-liters.zip
@@ -349,9 +384,8 @@ aws lambda update-function-code \
 
 ### Actualizar Environment Variables
 ```bash
-aws lambda update-function-configuration \
-  --function-name aguamarina-get-user-liters \
-  --environment Variables='{TIENDA_NUBE_EXTERNAL_API_URL=https://api.nuvemshop.com.br/v1/1946847}'
+# Las variables de entorno se configuran automáticamente en cada despliegue
+# No es necesario configurarlas manualmente
 ```
 
 ### Limpieza de Recursos
@@ -394,8 +428,8 @@ aws lambda delete-function --function-name aguamarina-set-user-liters
 
 6. **Error de Environment Variables**
    - Verificar que todos los secrets estén configurados en GitHub
-   - Confirmar que las variables estén en las funciones Lambda
-   - Validar formato de las variables de entorno
+   - Confirmar que las variables se configuraron automáticamente en las funciones Lambda
+   - Validar que el workflow se ejecutó correctamente
 
 7. **Error de Validación de Entrada**
    - Verificar formato del JSON en el body
