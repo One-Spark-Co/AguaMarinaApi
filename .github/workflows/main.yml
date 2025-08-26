@@ -48,13 +48,12 @@ jobs:
           function_name: aguamarina-get-user-liters
           zip_file: get-user-liters.zip
           runtime: nodejs22.x
-          environment: >-
-            {
-              "TIENDA_NUBE_EXTERNAL_API_URL": "${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}",
-              "TIENDA_NUBE_AUTH_TOKEN": "${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}",
-              "TIENDA_NUBE_USER_AGENT": "${{ secrets.TIENDA_NUBE_USER_AGENT }}",
-              "LITERS_PER_PRODUCT": "${{ secrets.LITERS_PER_PRODUCT }}"
-            }
+
+      - name: Update Environment Variables
+        run: |
+          aws lambda update-function-configuration \
+            --function-name aguamarina-get-user-liters \
+            --environment Variables='{"TIENDA_NUBE_EXTERNAL_API_URL":"${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}","TIENDA_NUBE_AUTH_TOKEN":"${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}","TIENDA_NUBE_USER_AGENT":"${{ secrets.TIENDA_NUBE_USER_AGENT }}","LITERS_PER_PRODUCT":"${{ secrets.LITERS_PER_PRODUCT }}"}'
 
   deploy_set_liters:
     name: Deploy setUserLiters Lambda
@@ -98,10 +97,9 @@ jobs:
           function_name: aguamarina-set-user-liters
           zip_file: set-user-liters.zip
           runtime: nodejs22.x
-          environment: >-
-            {
-              "TIENDA_NUBE_EXTERNAL_API_URL": "${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}",
-              "TIENDA_NUBE_AUTH_TOKEN": "${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}",
-              "TIENDA_NUBE_USER_AGENT": "${{ secrets.TIENDA_NUBE_USER_AGENT }}",
-              "LITERS_PER_PRODUCT": "${{ secrets.LITERS_PER_PRODUCT }}"
-            }
+
+      - name: Update Environment Variables
+        run: |
+          aws lambda update-function-configuration \
+            --function-name aguamarina-set-user-liters \
+            --environment Variables='{"TIENDA_NUBE_EXTERNAL_API_URL":"${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}","TIENDA_NUBE_AUTH_TOKEN":"${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}","TIENDA_NUBE_USER_AGENT":"${{ secrets.TIENDA_NUBE_USER_AGENT }}","LITERS_PER_PRODUCT":"${{ secrets.LITERS_PER_PRODUCT }}"}'
