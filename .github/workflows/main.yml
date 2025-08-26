@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -31,23 +31,28 @@ jobs:
       - name: Create ZIP Package
         run: |
           rm -f get-user-liters.zip
-          echo "TIENDA_NUBE_EXTERNAL_API_URL=${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}" > .env
-          echo "TIENDA_NUBE_AUTH_TOKEN=${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}" >> .env
-          echo "TIENDA_NUBE_USER_AGENT=${{ secrets.TIENDA_NUBE_USER_AGENT }}" >> .env
-          echo "LITERS_PER_PRODUCT=${{ secrets.LITERS_PER_PRODUCT }}" >> .env
-          zip -r get-user-liters.zip get-user-liters.js package.json node_modules .env
+          zip -r get-user-liters.zip get-user-liters.js package.json node_modules
 
-      - name: Deploy to AWS Lambda
-        uses: appleboy/lambda-action@v0.1.0
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: ${{ secrets.AWS_REGION }}
-          function_name: aguamarina-get-user-liters
-          zip_file: get-user-liters.zip
-          runtime: nodejs22.x
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-
+      - name: Deploy Lambda function
+        uses: aws-actions/aws-lambda-deploy@v1.1.0
+        with:
+          function-name: aguamarina-get-user-liters
+          code-artifacts-dir: ./
+          code-artifacts: get-user-liters.zip
+          environment: |
+            {
+              "TIENDA_NUBE_EXTERNAL_API_URL": "${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}",
+              "TIENDA_NUBE_AUTH_TOKEN": "${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}",
+              "TIENDA_NUBE_USER_AGENT": "${{ secrets.TIENDA_NUBE_USER_AGENT }}",
+              "LITERS_PER_PRODUCT": "${{ secrets.LITERS_PER_PRODUCT }}"
+            }
 
   deploy_set_liters:
     name: Deploy setUserLiters Lambda
@@ -58,7 +63,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -74,20 +79,27 @@ jobs:
       - name: Create ZIP Package
         run: |
           rm -f set-user-liters.zip
-          echo "TIENDA_NUBE_EXTERNAL_API_URL=${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}" > .env
-          echo "TIENDA_NUBE_AUTH_TOKEN=${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}" >> .env
-          echo "TIENDA_NUBE_USER_AGENT=${{ secrets.TIENDA_NUBE_USER_AGENT }}" >> .env
-          echo "LITERS_PER_PRODUCT=${{ secrets.LITERS_PER_PRODUCT }}" >> .env
-          zip -r set-user-liters.zip set-user-liters.js package.json node_modules .env
+          zip -r set-user-liters.zip set-user-liters.js package.json node_modules
 
-      - name: Deploy to AWS Lambda
-        uses: appleboy/lambda-action@v0.1.0
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: ${{ secrets.AWS_REGION }}
-          function_name: aguamarina-set-user-liters
-          zip_file: set-user-liters.zip
-          runtime: nodejs22.x
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy Lambda function
+        uses: aws-actions/aws-lambda-deploy@v1.1.0
+        with:
+          function-name: aguamarina-set-user-liters
+          code-artifacts-dir: ./
+          code-artifacts: set-user-liters.zip
+          environment: |
+            {
+              "TIENDA_NUBE_EXTERNAL_API_URL": "${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}",
+              "TIENDA_NUBE_AUTH_TOKEN": "${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}",
+              "TIENDA_NUBE_USER_AGENT": "${{ secrets.TIENDA_NUBE_USER_AGENT }}",
+              "LITERS_PER_PRODUCT": "${{ secrets.LITERS_PER_PRODUCT }}"
+            }
 
 
