@@ -43,12 +43,7 @@ jobs:
         run: |
           aws lambda update-function-configuration \
             --function-name aguamarina-get-user-liters \
-            --environment Variables='{
-              "TIENDA_NUBE_EXTERNAL_API_URL":"${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}",
-              "TIENDA_NUBE_AUTH_TOKEN":"${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}",
-              "TIENDA_NUBE_USER_AGENT":"${{ secrets.TIENDA_NUBE_USER_AGENT }}",
-              "LITERS_PER_PRODUCT":"${{ secrets.LITERS_PER_PRODUCT }}"
-            }'
+            --environment Variables='{"TIENDA_NUBE_EXTERNAL_API_URL":"${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}","TIENDA_NUBE_AUTH_TOKEN":"${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}","TIENDA_NUBE_USER_AGENT":"${{ secrets.TIENDA_NUBE_USER_AGENT }}","LITERS_PER_PRODUCT":"${{ secrets.LITERS_PER_PRODUCT }}"}'
 
       - name: Deploy to AWS Lambda
         uses: appleboy/lambda-action@v0.1.0
@@ -97,12 +92,7 @@ jobs:
         run: |
           aws lambda update-function-configuration \
             --function-name aguamarina-set-user-liters \
-            --environment Variables='{
-              "TIENDA_NUBE_EXTERNAL_API_URL":"${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}",
-              "TIENDA_NUBE_AUTH_TOKEN":"${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}",
-              "TIENDA_NUBE_USER_AGENT":"${{ secrets.TIENDA_NUBE_USER_AGENT }}",
-              "LITERS_PER_PRODUCT":"${{ secrets.LITERS_PER_PRODUCT }}"
-            }'
+            --environment Variables='{"TIENDA_NUBE_EXTERNAL_API_URL":"${{ secrets.TIENDA_NUBE_EXTERNAL_API_URL }}","TIENDA_NUBE_AUTH_TOKEN":"${{ secrets.TIENDA_NUBE_AUTH_TOKEN }}","TIENDA_NUBE_USER_AGENT":"${{ secrets.TIENDA_NUBE_USER_AGENT }}","LITERS_PER_PRODUCT":"${{ secrets.LITERS_PER_PRODUCT }}"}'
 
       - name: Deploy to AWS Lambda
         uses: appleboy/lambda-action@v0.1.0
