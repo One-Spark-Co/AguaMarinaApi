@@ -4,11 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'get-user-liters.js'
-      - 'set-user-liters.js'
-      - 'package.json'
-      - '.github/workflows/main.yml'
 
 jobs:
   deploy_get_liters:
