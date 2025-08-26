@@ -1,7 +1,7 @@
 const customerId = "120729851";
 
 if (customerId != null){
-  const endpoint = "https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-0d621a5c-34a8-4785-a6b5-b76ecace58df/functions/getUserLiters";
+  const endpoint = "https://ff8xt2bfj7.execute-api.us-east-1.amazonaws.com/get-user-liters";
   const body = {
     "id": customerId
   };
