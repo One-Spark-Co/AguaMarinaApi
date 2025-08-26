@@ -14,23 +14,42 @@ const axios = require('axios');
 // Configuración de CORS para respuestas
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,x-linkedstore-hmac-sha256',
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
 /**
  * Extrae el ID de la orden desde el body del evento
+ * Maneja tanto peticiones directas como webhooks de Tienda Nube
  * @param {Object} event - Evento de API Gateway
- * @returns {string|null} ID de la orden o null si no se encuentra
+ * @returns {Object|null} Objeto con orderId y customerId, o null si no se encuentra
  */
-function extractOrderId(event) {
+function extractOrderInfo(event) {
   if (!event.body) {
     return null;
   }
   
   try {
     const body = JSON.parse(event.body);
-    return body.id;
+    
+    // Caso 1: Petición directa con orderId
+    if (body.orderId || body.id) {
+      return {
+        orderId: body.orderId || body.id,
+        customerId: null // Se obtendrá de la orden
+      };
+    }
+    
+    // Caso 2: Webhook de Tienda Nube
+    if (body.event === 'order/paid' && body.data) {
+      const orderData = body.data;
+      return {
+        orderId: orderData.id?.toString(),
+        customerId: orderData.customer?.id?.toString()
+      };
+    }
+    
+    return null;
   } catch (error) {
     console.error('Error parsing JSON body:', error.message);
     return null;
@@ -38,12 +57,15 @@ function extractOrderId(event) {
 }
 
 /**
- * Valida que el ID de la orden sea válido
- * @param {string} orderId - ID de la orden a validar
+ * Valida que la información de la orden sea válida
+ * @param {Object} orderInfo - Información de la orden
  * @returns {boolean} true si es válido, false en caso contrario
  */
-function isValidOrderId(orderId) {
-  return orderId && typeof orderId === 'string' && orderId.trim().length > 0;
+function isValidOrderInfo(orderInfo) {
+  return orderInfo && 
+         orderInfo.orderId && 
+         typeof orderInfo.orderId === 'string' && 
+         orderInfo.orderId.trim().length > 0;
 }
 
 /**
@@ -174,14 +196,15 @@ exports.handler = async (event) => {
   }
   
   try {
-    // Extraer y validar ID de la orden
-    const orderId = extractOrderId(event);
+    // Extraer y validar información de la orden
+    const orderInfo = extractOrderInfo(event);
     
-    if (!isValidOrderId(orderId)) {
-      console.error('Invalid or missing order ID');
-      return buildErrorResponse(400, 'Missing or invalid order ID');
+    if (!isValidOrderInfo(orderInfo)) {
+      console.error('Invalid or missing order information');
+      return buildErrorResponse(400, 'Missing or invalid order information');
     }
     
+    const { orderId, customerId: webhookCustomerId } = orderInfo;
     console.log(`Processing order ID: ${orderId}`);
     
     // Paso 1: Obtener información de la orden
@@ -194,7 +217,7 @@ exports.handler = async (event) => {
     
     // Paso 2: Extraer información relevante de la orden
     const orderLiters = calculateOrderLiters(order);
-    const customerId = order?.customer?.id;
+    const customerId = webhookCustomerId || order?.customer?.id;
     
     if (!customerId) {
       console.error('No customer found in order');
@@ -224,10 +247,18 @@ exports.handler = async (event) => {
     const response = buildSuccessResponse(updatedCustomer, currentLiters);
     console.log('Success response:', response);
     
+    // Para webhooks, siempre responder con 200 para evitar reintentos
+    const responseBody = {
+      message: response,
+      orderId: orderId,
+      customerId: customerId,
+      liters: updatedLiters
+    };
+    
     return {
       statusCode: 200,
       headers: CORS_HEADERS,
-      body: JSON.stringify(response)
+      body: JSON.stringify(responseBody)
     };
     
   } catch (error) {

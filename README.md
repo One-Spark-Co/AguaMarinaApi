@@ -14,6 +14,8 @@ Este sistema gestiona el control de litros de agua para clientes de Agua Marina,
    - Se actualiza el saldo del cliente sumando los nuevos litros a los existentes
 
 ### Flujo de Negocio
+
+#### Procesamiento de Órdenes (set-user-liters)
 1. Cliente hace una orden de productos
 2. Sistema obtiene la orden por ID
 3. Calcula litros: `cantidad_productos × litros_por_producto`
@@ -21,12 +23,22 @@ Este sistema gestiona el control de litros de agua para clientes de Agua Marina,
 5. Suma los nuevos litros a los existentes
 6. Actualiza el cliente con el nuevo total
 
+#### Consulta de Saldo (get-user-liters)
+1. Usuario accede a una página web
+2. `renderLitersComponent.html` se ejecuta en el navegador
+3. Hace petición al API Gateway
+4. API Gateway invoca la función Lambda `get-user-liters`
+5. Lambda consulta la API externa para obtener los litros del cliente
+6. Respuesta se devuelve al frontend
+7. `renderLitersComponent.html` muestra los litros en la página
+
 ## Arquitectura Técnica
 
 ### Componentes
 - **AWS Lambda**: Funciones serverless para la lógica de negocio
 - **API Gateway**: Expone endpoints HTTP RESTful
 - **API Externa**: Sistema principal de Agua Marina (clientes y órdenes)
+- **Frontend**: Scripts JavaScript para mostrar información en páginas web
 
 ### Estructura del Proyecto
 ```
@@ -35,6 +47,7 @@ Este sistema gestiona el control de litros de agua para clientes de Agua Marina,
 │   └── workflows/          # Configuración de CI/CD
 ├── get-user-liters.js     # Lambda para consultar saldo de cliente
 ├── set-user-liters.js     # Lambda para procesar órdenes y actualizar litros
+├── renderLitersComponent.html # Script frontend (HTML+JS) para mostrar litros en páginas web
 ├── package.json           # Dependencias y scripts de despliegue
 ├── .env.example           # Template de variables de entorno
 ├── .env                   # Variables de entorno locales (no en git)
@@ -43,21 +56,50 @@ Este sistema gestiona el control de litros de agua para clientes de Agua Marina,
 
 ## API Gateway Endpoints
 
-### GET /litros/{userId}
+### GET /get-user-liters
 Obtiene el saldo de litros de un cliente.
 
-**URL**: https://[api-id].execute-api.[region].amazonaws.com/[stage]/litros/{userId}
+**URL**: `https://ff8xt2bfj7.execute-api.us-east-1.amazonaws.com/get-user-liters`
+
+### POST /set-user-liters
+Procesa una orden y actualiza los litros del cliente. **Maneja tanto peticiones directas como webhooks de Tienda Nube**.
+
+**URL**: `https://ff8xt2bfj7.execute-api.us-east-1.amazonaws.com/set-user-liters`
+
+#### Petición directa:
+```json
+{
+  "orderId": "12345"
+}
+```
+
+#### Webhook de Tienda Nube (order/paid):
+```json
+{
+  "event": "order/paid",
+  "data": {
+    "id": 12345,
+    "customer": {
+      "id": 67890
+    }
+  }
+}
+```
 
 **Método**: GET
 
-**Parámetros URL**:
-- userId (requerido): ID del cliente
+**Body**:
+```json
+{
+  "id": "120729851"
+}
+```
 
 **Respuesta Exitosa**:
 ```json
 {
-  "message": "Customer 120729851 has 150 liters.",
-  "liters": 150
+  "message": "Customer 120729851 has 25 liters.",
+  "liters": 25
 }
 ```
 
@@ -67,23 +109,26 @@ Obtiene el saldo de litros de un cliente.
 - 404: Cliente no encontrado
 - 500: Error del servidor
 
-### POST /litros
+### POST /set-user-liters
 Procesa una orden y actualiza los litros del cliente.
 
-**URL**: https://[api-id].execute-api.[region].amazonaws.com/[stage]/litros
+**URL**: `https://ff8xt2bfj7.execute-api.us-east-1.amazonaws.com/set-user-liters`
 
 **Método**: POST
 
 **Body**:
 ```json
 {
-  "id": "ORDER_12345"
+  "orderId": "12345"
 }
 ```
 
 **Respuesta Exitosa**:
 ```json
-"Customer 120729851 liters where updated from 100 to 150"
+{
+  "message": "Order 12345 processed successfully. Customer now has 30 liters.",
+  "liters": 30
+}
 ```
 
 **Códigos de Respuesta**:
@@ -91,6 +136,146 @@ Procesa una orden y actualiza los litros del cliente.
 - 400: ID de orden inválido
 - 404: Orden o cliente no encontrado
 - 500: Error del servidor
+
+## Frontend Integration - renderLitersComponent.html
+
+### Propósito
+El archivo `renderLitersComponent.html` contiene un **script de frontend** (inline) que se ejecuta en el navegador para mostrar dinámicamente la información de litros de un cliente en páginas web.
+
+### Funcionalidad
+1. **Consulta de datos**: Hace una petición HTTP POST a la función Lambda `get-user-liters`
+2. **Renderizado dinámico**: Modifica el DOM de la página para mostrar la información
+3. **Integración visual**: Agrega un ícono y texto con los litros del cliente
+
+### Relación con las Funciones Lambda
+- **Consume**: La función Lambda `get-user-liters` a través del API Gateway
+- **Endpoint utilizado**: `https://ff8xt2bfj7.execute-api.us-east-1.amazonaws.com/get-user-liters`
+- **Método**: POST con body `{"id": "<CUSTOMER_ID>"}`
+
+### Cómo funciona
+```html
+<script>
+const customerId = LS.customer;
+if (customerId != null && window.location.pathname === "/account/"){
+  const endpoint = "https://ff8xt2bfj7.execute-api.us-east-1.amazonaws.com/get-user-liters";
+  fetch(endpoint, {
+    method: "POST",
+    body: JSON.stringify({ id: customerId }),
+    headers: { "Content-Type": "application/json" }
+  })
+  .then(r => r.json())
+  .then(data => {
+    // Renderiza el balance y el texto con los litros
+  });
+}
+</script>
+```
+
+### Instalación en Tienda Nube
+1. **Acceder a la plataforma de administración** de Tienda Nube
+2. **Navegar a**: Configuración → Código Externo → Códigos de Tracking
+3. **Copiar y pegar** el contenido completo del archivo `renderLitersComponent.html`
+4. **Guardar** la configuración
+
+### Consideraciones para el funcionamiento correcto
+1. **Dependencias del DOM**:
+   - El script requiere que exista un elemento con clase `.visible-when-content-ready`
+   - Necesita un elemento con clase `.contact-data` que contenga al menos 2 elementos hijos
+   - La variable global `LS.customer` debe estar disponible (proporcionada por Tienda Nube)
+
+2. **Contexto de ejecución**:
+   - Solo se ejecuta en la página `/account/` (cuenta del cliente)
+   - Requiere que el cliente esté autenticado para obtener `LS.customer`
+   - El script debe cargarse después de que el DOM esté listo
+
+3. **Requisitos de red**:
+   - El endpoint de AWS API Gateway debe estar accesible desde el navegador
+   - Se requiere conexión a internet para hacer la petición HTTP
+   - El dominio debe tener permisos CORS configurados en API Gateway
+
+4. **Estructura esperada del DOM**:
+   ```html
+   <div class="visible-when-content-ready">
+     <!-- El script insertará el balance aquí -->
+   </div>
+   <div class="contact-data">
+     <div>...</div>  <!-- Primer hijo: se agregará el ícono -->
+     <div>...</div>  <!-- Segundo hijo: se agregará el texto -->
+   </div>
+   ```
+
+### Uso en páginas web
+1. **El script se ejecuta automáticamente** cuando se cumple la condición
+2. **Configura el customerId** automáticamente usando `LS.customer` provisto por Tienda Nube
+3. **Modifica el DOM dinámicamente**:
+   - Busca un elemento con clase `.visible-when-content-ready`
+   - Busca un elemento con clase `.contact-data`
+   - Agrega un ícono de gota de agua
+   - Muestra los litros del cliente
+
+### Resultado visual
+```
+💧 Litros del usuario: 25
+```
+
+## Configuración de Webhooks en Tienda Nube
+
+### Configurar Webhook para order/paid
+
+Para que las órdenes se procesen automáticamente cuando se complete una compra, configura el webhook en Tienda Nube:
+
+1. **Obtén tu ACCESS_TOKEN** de la aplicación de Tienda Nube
+2. **Ejecuta el comando curl** para registrar el webhook:
+
+```bash
+curl -X POST 'https://api.tiendanube.com/2025-03/webhooks' \
+  -H 'Authentication: bearer <ACCESS_TOKEN>' \
+  -H 'User-Agent: <TuApp> <tu-email>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "event": "order/paid",
+    "url": "https://ff8xt2bfj7.execute-api.us-east-1.amazonaws.com/set-user-liters"
+  }'
+```
+
+### Consideraciones importantes:
+- **Endpoint HTTPS**: El endpoint debe ser HTTPS y no puede ser localhost
+- **Timeout**: Tienda Nube espera respuesta 2XX en ~10 segundos
+- **Reintentos**: Si no respondes con 2XX, Tienda Nube reintentará automáticamente
+- **Cabecera de firma**: Tienda Nube incluye `x-linkedstore-hmac-sha256` para verificación
+- **Procesamiento automático**: Cuando se complete una compra, el webhook llamará automáticamente a `set-user-liters`
+
+## Pruebas de los Endpoints
+
+### Probar GET /get-user-liters
+```bash
+curl -X GET "https://ff8xt2bfj7.execute-api.us-east-1.amazonaws.com/get-user-liters" \
+  -H "Content-Type: application/json" \
+  -d '{"id": "120729851"}'
+```
+
+**Respuesta esperada**:
+```json
+{
+  "message": "Customer 120729851 has 1 liters.",
+  "liters": 1
+}
+```
+
+### Probar POST /set-user-liters
+```bash
+curl -X POST "https://ff8xt2bfj7.execute-api.us-east-1.amazonaws.com/set-user-liters" \
+  -H "Content-Type: application/json" \
+  -d '{"orderId": "12345"}'
+```
+
+**Respuesta esperada**:
+```json
+{
+  "message": "Order 12345 processed successfully. Customer now has 6 liters.",
+  "liters": 6
+}
+```
 
 ## Variables de Entorno
 
