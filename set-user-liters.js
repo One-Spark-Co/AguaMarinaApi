@@ -19,6 +19,25 @@ const CORS_HEADERS = {
 };
 
 /**
+ * Extrae el método HTTP del evento (compatible con API Gateway v1 y v2)
+ * @param {Object} event - Evento de API Gateway
+ * @returns {string} Método HTTP
+ */
+function getHttpMethod(event) {
+  // API Gateway v2 (HTTP API)
+  if (event.requestContext && event.requestContext.http && event.requestContext.http.method) {
+    return event.requestContext.http.method;
+  }
+  
+  // API Gateway v1 (REST API)
+  if (event.httpMethod) {
+    return event.httpMethod;
+  }
+  
+  return 'GET'; // Default fallback
+}
+
+/**
  * Extrae el ID de la orden desde el body del evento
  * Maneja tanto peticiones directas como webhooks de Tienda Nube
  * @param {Object} event - Evento de API Gateway
@@ -181,8 +200,12 @@ function buildErrorResponse(statusCode, message) {
 exports.handler = async (event) => {
   console.log('Event received:', JSON.stringify(event, null, 2));
   
+  // Obtener el método HTTP de forma compatible con API Gateway v1 y v2
+  const httpMethod = getHttpMethod(event);
+  console.log('HTTP Method:', httpMethod);
+  
   // Manejar preflight CORS
-  if (event.httpMethod === 'OPTIONS') {
+  if (httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
       headers: CORS_HEADERS,
@@ -191,7 +214,8 @@ exports.handler = async (event) => {
   }
   
   // Validar método HTTP
-  if (event.httpMethod !== 'POST') {
+  if (httpMethod !== 'POST') {
+    console.log(`Method ${httpMethod} not allowed, only POST is supported`);
     return buildErrorResponse(405, 'Method Not Allowed');
   }
   
