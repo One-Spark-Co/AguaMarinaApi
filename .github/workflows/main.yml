@@ -54,6 +54,13 @@ jobs:
               "LITERS_PER_PRODUCT": "${{ secrets.LITERS_PER_PRODUCT }}"
             }
 
+      - name: Update Lambda handler configuration
+        run: |
+          aws lambda update-function-configuration \
+            --function-name aguamarina-get-user-liters \
+            --handler get-user-liters.handler \
+            --region ${{ secrets.AWS_REGION }}
+
   deploy_set_liters:
     name: Deploy setUserLiters Lambda
     runs-on: ubuntu-latest
@@ -101,5 +108,12 @@ jobs:
               "TIENDA_NUBE_USER_AGENT": "${{ secrets.TIENDA_NUBE_USER_AGENT }}",
               "LITERS_PER_PRODUCT": "${{ secrets.LITERS_PER_PRODUCT }}"
             }
+
+      - name: Update Lambda handler configuration
+        run: |
+          aws lambda update-function-configuration \
+            --function-name aguamarina-set-user-liters \
+            --handler set-user-liters.handler \
+            --region ${{ secrets.AWS_REGION }}
 
 
