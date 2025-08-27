@@ -245,6 +245,77 @@ curl -X POST 'https://api.tiendanube.com/2025-03/webhooks' \
 - **Cabecera de firma**: Tienda Nube incluye `x-linkedstore-hmac-sha256` para verificación
 - **Procesamiento automático**: Cuando se complete una compra, el webhook llamará automáticamente a `set-user-liters`
 
+## Configuración de Aplicación en Tienda Nube Partners
+
+### Creación de la Aplicación
+
+Para que el sistema funcione correctamente, fue necesario crear una aplicación en **Tienda Nube Partners** bajo la cuenta `jorgenavadelapena@gmail.com`.
+
+#### Detalles de la Aplicación:
+- **Nombre**: Aguamaringa API
+- **App ID**: `20820`
+- **Cuenta**: jorgenavadelapena@gmail.com
+- **Estado**: En desarrollo
+- **Permisos**: read_orders, write_customers, read_customers (más permisos...)
+
+#### Proceso de Configuración:
+1. **Acceso a Tienda Nube Partners**: Se accedió al panel de desarrolladores de Tienda Nube
+2. **Creación de Aplicación**: Se creó la aplicación "Aguamaringa API"
+3. **Configuración de Permisos**: Se configuraron los permisos necesarios para acceder a órdenes y clientes
+4. **Generación de ACCESS_TOKEN**: Se obtuvo el token de acceso válido para las operaciones de API
+
+### Webhook Configurado
+
+#### Webhook order/paid Activo
+Se configuró exitosamente un webhook que se activa automáticamente cuando se completa una compra:
+
+```json
+{
+    "id": 30747663,
+    "event": "order/paid",
+    "url": "https://ff8xt2bfj7.execute-api.us-east-1.amazonaws.com/set-user-liters",
+    "created_at": "2025-08-27T07:20:13+0000",
+    "updated_at": "2025-08-27T07:20:13+0000"
+}
+```
+
+#### Funcionamiento del Webhook:
+1. **Trigger**: Cuando un cliente completa una compra en Tienda Nube
+2. **Evento**: `order/paid` se dispara automáticamente
+3. **Endpoint**: Llama a la función Lambda `set-user-liters`
+4. **Procesamiento**: La función Lambda:
+   - Obtiene los detalles de la orden
+   - Calcula los litros basado en los productos
+   - Actualiza automáticamente los litros del cliente
+   - Devuelve confirmación a Tienda Nube
+
+#### Credenciales de API:
+- **ACCESS_TOKEN**: `29ea5aba75ffc1888cad777322f24db83e430f0e`
+- **USER_ID**: `1946847`
+- **API Base URL**: `https://api.tiendanube.com/v1/1946847`
+- **User-Agent**: `Aguamarina API (jorgenavadelapena@gmail.com)`
+
+#### Verificación del Webhook:
+Para verificar que el webhook esté activo, puedes usar:
+```bash
+curl -X GET 'https://api.tiendanube.com/v1/1946847/webhooks' \
+  -H 'Authentication: bearer 29ea5aba75ffc1888cad777322f24db83e430f0e' \
+  -H 'User-Agent: Aguamarina API (jorgenavadelapena@gmail.com)'
+```
+
+### Flujo Completo de Integración
+
+1. **Cliente hace una compra** en la tienda de Tienda Nube
+2. **Tienda Nube procesa el pago** y marca la orden como pagada
+3. **Webhook order/paid se dispara** automáticamente
+4. **Tienda Nube envía los datos** de la orden a nuestro endpoint
+5. **Función Lambda set-user-liters** recibe y procesa la orden
+6. **Se calculan los litros** basado en los productos comprados
+7. **Se actualiza el cliente** con los nuevos litros
+8. **Se confirma el procesamiento** a Tienda Nube
+
+Esta integración permite que el sistema funcione de manera completamente automática, sin intervención manual para procesar las órdenes y actualizar los litros de los clientes.
+
 ## Pruebas de los Endpoints
 
 ### Probar GET /get-user-liters
@@ -288,9 +359,9 @@ Configura estos secretos en tu repositorio de GitHub (Settings > Secrets > Actio
 | `AWS_ACCESS_KEY_ID` | Access Key ID de AWS | AKIA... |
 | `AWS_SECRET_ACCESS_KEY` | Secret Access Key de AWS | wJalrXUtnFEMI... |
 | `AWS_REGION` | Región de AWS | us-east-1 |
-| `TIENDA_NUBE_EXTERNAL_API_URL` | URL base de la API externa de Tienda Nube | https://api.nuvemshop.com.br/v1/1946847 |
-| `TIENDA_NUBE_AUTH_TOKEN` | Token de autenticación Bearer de Tienda Nube | eyJhbGciOiJIUzI1NiIs... |
-| `TIENDA_NUBE_USER_AGENT` | User agent para las requests a Tienda Nube | AguaMarina-Lambda/1.0 |
+| `TIENDA_NUBE_EXTERNAL_API_URL` | URL base de la API externa de Tienda Nube | https://api.tiendanube.com/v1/1946847 |
+| `TIENDA_NUBE_AUTH_TOKEN` | Token de autenticación Bearer de Tienda Nube | 29ea5aba75ffc1888cad777322f24db83e430f0e |
+| `TIENDA_NUBE_USER_AGENT` | User agent para las requests a Tienda Nube | Aguamarina API (jorgenavadelapena@gmail.com) |
 | `LITERS_PER_PRODUCT` | Litros por producto | 1 |
 
 ### Configuración de Environment Variables
@@ -298,9 +369,9 @@ Configura estos secretos en tu repositorio de GitHub (Settings > Secrets > Actio
 Las funciones Lambda reciben estas variables de entorno:
 
 ```bash
-TIENDA_NUBE_EXTERNAL_API_URL=https://api.nuvemshop.com.br/v1/1946847
-TIENDA_NUBE_AUTH_TOKEN=your_bearer_token_here
-TIENDA_NUBE_USER_AGENT=AguaMarina-Lambda/1.0
+TIENDA_NUBE_EXTERNAL_API_URL=https://api.tiendanube.com/v1/1946847
+TIENDA_NUBE_AUTH_TOKEN=29ea5aba75ffc1888cad777322f24db83e430f0e
+TIENDA_NUBE_USER_AGENT=Aguamarina API (jorgenavadelapena@gmail.com)
 LITERS_PER_PRODUCT=1
 ```
 
