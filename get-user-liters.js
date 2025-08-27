@@ -26,12 +26,17 @@ const CORS_HEADERS = {
  * @returns {string|null} ID del cliente o null si no se encuentra
  */
 function extractUserId(event) {
-  // Prioridad 1: Path parameters (GET /litros/{userId})
+  // Prioridad 1: Query parameters (GET /get-user-liters?userId=123)
+  if (event.queryStringParameters?.userId) {
+    return event.queryStringParameters.userId;
+  }
+  
+  // Prioridad 2: Path parameters (GET /litros/{userId})
   if (event.pathParameters?.userId) {
     return event.pathParameters.userId;
   }
   
-  // Prioridad 2: Body JSON (POST /litros)
+  // Prioridad 3: Body JSON (POST /litros)
   if (event.body) {
     try {
       const body = JSON.parse(event.body);
