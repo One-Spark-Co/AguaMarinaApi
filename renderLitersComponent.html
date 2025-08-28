@@ -2,7 +2,7 @@
 const customerId = LS.customer;
 console.log('customerId', customerId);
 
-if (customerId != null && window.location.pathname === "/account/"){
+if (customerId != null && (window.location.pathname === "/account" || window.location.pathname === "/account/")){
     const endpoint = `https://ff8xt2bfj7.execute-api.us-east-1.amazonaws.com/get-user-liters?userId=${customerId}`;
     
    const options = {
@@ -12,8 +12,8 @@ if (customerId != null && window.location.pathname === "/account/"){
     }
    };
 
-  // Find the target section to insert after
-  const targetSection = document.querySelector('section.account-page.top-line.bottom-line');
+  // Find the target section to insert after - page-header section
+  const targetSection = document.querySelector('section.page-header');
   
   if (targetSection) {
     // Create the balance component
@@ -24,9 +24,7 @@ if (customerId != null && window.location.pathname === "/account/"){
     balanceDiv.style.marginBottom = '45px';
     balanceDiv.style.marginTop = '30px';
     balanceDiv.style.padding = '20px';
-    balanceDiv.style.backgroundColor = '#f8f9fa';
-    balanceDiv.style.borderRadius = '8px';
-    balanceDiv.style.border = '1px solid #e9ecef';
+    balanceDiv.style.backgroundColor = 'transparent';
 
     balanceDiv.innerHTML = `
       <h2 style="font-weight: bold; margin: 0 0 30px 0;">BALANCE</h2>
@@ -62,7 +60,7 @@ if (customerId != null && window.location.pathname === "/account/"){
         `;
       });
   } else {
-    console.warn('Target section not found: section.account-page.top-line.bottom-line');
+    console.warn('Target section not found: section.page-header');
   }
 }
 </script>
